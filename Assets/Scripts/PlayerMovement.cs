@@ -16,9 +16,12 @@ public class PlayerMovement : MonoBehaviour
     private bool isGrounded = false;
     private bool isJumping = false;
     private float jumpTimer;
+    private float baseRunSpeed;
+    private Coroutine speedRoutine;
 
 
-   
+
+
     [Header("Animation")]
     [SerializeField] private Animator animator;
     [SerializeField] private string slideBoolName = "IsSliding";
@@ -47,6 +50,7 @@ public class PlayerMovement : MonoBehaviour
             standSize = bodyCollider.size;
             standOffset = bodyCollider.offset;
         }
+        baseRunSpeed = runSpeed;
 
     }
 
@@ -112,10 +116,28 @@ public class PlayerMovement : MonoBehaviour
 
 
     }
+
     private void FixedUpdate()
     {
-        rb.velocity = new Vector2(runSpeed, rb.velocity.y);
+        rb.velocity = new Vector2(Mathf.Max(rb.velocity.x, runSpeed), rb.velocity.y);
 
+
+    }
+
+    public void AddSpeed(float amount, float duration)
+    {
+        if (speedRoutine != null) StopCoroutine(speedRoutine);
+        speedRoutine = StartCoroutine(SpeedBoost(amount, duration));
+    }
+
+    private IEnumerator SpeedBoost(float amount, float duration)
+    {
+        runSpeed = baseRunSpeed + amount;
+
+        yield return new WaitForSeconds(duration);
+
+        runSpeed = baseRunSpeed;
+        speedRoutine = null;
     }
 }
 

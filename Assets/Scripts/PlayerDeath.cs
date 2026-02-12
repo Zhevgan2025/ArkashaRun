@@ -33,9 +33,17 @@ public class PlayerDeath : MonoBehaviour
 
         if (collision.collider.CompareTag("Obstacle"))
         {
+            ExplodeOnHit explode = collision.collider.GetComponent<ExplodeOnHit>();
+            if (explode != null)
+            {
+                explode.Explode();
+                Destroy(collision.collider.gameObject);
+            }
+
             Die();
         }
     }
+
 
     private void Die()
     {

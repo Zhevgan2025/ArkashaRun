@@ -15,5 +15,16 @@ public class MainMenuUI : MonoBehaviour
     }
 
     public void Play() => SceneManager.LoadScene(gameSceneName);
-    public void Exit() { Application.Quit(); Debug.Log("Exit"); }
+
+    public void Exit()
+    {
+        Debug.Log("Game is closing...");
+
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+    Application.Quit();
+#endif
+    }
+
 }

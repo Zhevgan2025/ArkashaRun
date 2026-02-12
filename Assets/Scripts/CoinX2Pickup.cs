@@ -22,6 +22,9 @@ public class CoinX2Pickup : MonoBehaviour
         }
 
         Destroy(gameObject);
+
+        SFXPlayer.I?.PlayPickup();
+        Destroy(gameObject);
     }
 
     private void HideIcon()

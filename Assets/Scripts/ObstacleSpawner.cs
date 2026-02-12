@@ -9,6 +9,10 @@ public class ObstacleSpawner : MonoBehaviour
     [SerializeField] private GameObject obstaclePrefab;
     [SerializeField] private GameObject lowBarrierPrefab;
 
+    [Header("Roof Segment")]
+    [SerializeField] private GameObject roofPrefab;
+    [Range(0f, 1f)][SerializeField] private float roofChance = 0.12f;
+
     [Header("Spawn")]
     [SerializeField] private float spawnAhead = 12f;
     [SerializeField] private float minDelay = 1.2f;
@@ -38,6 +42,11 @@ public class ObstacleSpawner : MonoBehaviour
 
     private bool lastWasLowBarrier;
 
+    private bool hasNoSpawnZone;
+    private float noSpawnLeftX;
+    private float noSpawnRightX;
+
+
     private void Start()
     {
         if (target) startX = target.position.x;
@@ -64,17 +73,43 @@ private void Update()
 
         float xWanted = target.position.x + spawnAhead;
 
+        if (hasNoSpawnZone && xWanted >= noSpawnLeftX && xWanted <= noSpawnRightX)
+        {
+            nextSpawnX = noSpawnRightX + minSpawnDistance;
+            ScheduleNext();
+            return;
+        }
+
+        if (hasNoSpawnZone && xWanted > noSpawnRightX)
+        {
+            hasNoSpawnZone = false;
+        }
+
+
         if (xWanted < nextSpawnX)
         {
             ScheduleNext();
             return;
         }
 
-        bool wantObstacle = Random.value < obstacleChance;
-        GameObject chosenPrefab = wantObstacle ? obstaclePrefab : lowBarrierPrefab;
+        GameObject chosenPrefab;
 
-        if (chosenPrefab == lowBarrierPrefab && lastWasLowBarrier)
-            chosenPrefab = obstaclePrefab;
+        bool wantRoof = roofPrefab != null && Random.value < roofChance;
+
+        if (wantRoof)
+        {
+            chosenPrefab = roofPrefab;
+            lastWasLowBarrier = false;
+        }
+        else
+        {
+            bool wantObstacle = Random.value < obstacleChance;
+            chosenPrefab = wantObstacle ? obstaclePrefab : lowBarrierPrefab;
+
+            if (chosenPrefab == lowBarrierPrefab && lastWasLowBarrier)
+                chosenPrefab = obstaclePrefab;
+        }
+
 
         float x = xWanted;
 
@@ -94,6 +129,17 @@ private void Update()
 
             Vector3 pos = new Vector3(x, hit.point.y + halfH + yExtra, 2f);
             GameObject obj = Instantiate(chosenPrefab, pos, Quaternion.identity);
+
+            if (chosenPrefab == roofPrefab)
+            {
+                float widthRoof = GetPrefabWidth(roofPrefab);
+                float pad = 0.5f;
+
+                hasNoSpawnZone = true;
+                noSpawnLeftX = x - widthRoof * 0.5f - pad;
+                noSpawnRightX = x + widthRoof * 0.5f + pad;
+            }
+
 
             AutoDestroy ad = obj.GetComponent<AutoDestroy>();
             if (ad != null) ad.SetTarget(target);

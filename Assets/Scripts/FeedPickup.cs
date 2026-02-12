@@ -16,6 +16,10 @@ public class FeedPickup : MonoBehaviour
             HUDTextUI.Instance.AddFeed(amount * mult);
 
         Destroy(gameObject);
+
+
+        SFXPlayer.I?.PlayPickup();
+        Destroy(gameObject);
     }
 }
 
